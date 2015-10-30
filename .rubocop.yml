@@ -1,0 +1,6 @@
+AllCops:
+  Exclude:
+    - 'lib/foodcritic/rules/etsy.rb'
+
+Metrics/LineLength:
+  Max: 120
