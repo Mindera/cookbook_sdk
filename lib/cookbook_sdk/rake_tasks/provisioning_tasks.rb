@@ -7,11 +7,12 @@ module CookbookSdk
     target_folder = '.target'
 
     desc 'Prepare chef-zero environment, and run it.'
-    task prod: ['prod:clean', 'prod:prepare', 'prod:run']
+    task prod: ['prod:prepare', 'prod:run']
 
     namespace :prod do
       desc 'Prepare chef-zero environment to run.'
       task :prepare do
+        clean(target_folder)
         chefdk_update
         chefdk_export(target_folder)
         create_custom_client_rb(target_folder)
