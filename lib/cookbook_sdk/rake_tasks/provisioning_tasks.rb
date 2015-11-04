@@ -4,29 +4,28 @@ module CookbookSdk
   module Raketasks
     extend Rake::DSL
 
-    target_folder = '.target'
+    TARGET_FOLDER = '.target'
+    CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
 
     desc 'Prepare chef-zero environment, and run it.'
-    task prod: ['prod:prepare', 'prod:run']
+    task all: ['prepare', 'run']
 
-    namespace :prod do
-      desc 'Prepare chef-zero environment to run.'
-      task :prepare do
-        clean(target_folder)
-        chefdk_update
-        chefdk_export(target_folder)
-        create_custom_client_rb(target_folder)
-      end
+    desc 'Prepare chef-zero environment to run.'
+    task :prepare do
+      clean(TARGET_FOLDER)
+      chefdk_update
+      chefdk_export(TARGET_FOLDER)
+      create_custom_client_rb(TARGET_FOLDER)
+    end
 
-      desc 'Run chef-zero in a pre prepared environment.'
-      task :run do
-        run_chef_zero(target_folder)
-      end
+    desc 'Run chef-zero in a pre prepared environment.'
+    task :run do
+      run_chef_zero(TARGET_FOLDER, CUSTOM_NAMED_LIST)
+    end
 
-      desc 'Clean generated folder'
-      task :clean do
-        clean(target_folder)
-      end
+    desc 'Clean generated folder'
+    task :clean do
+      clean(TARGET_FOLDER)
     end
   end
 end
@@ -65,8 +64,10 @@ cache_path '#{Dir.pwd}/#{target_folder}/.chef'
 end
 # rubocop:enable Metrics/MethodLength
 
-def run_chef_zero(target_folder)
-  cmd = 'chef-client --minimal-ohai -c custom_client.rb -z'
+def run_chef_zero(target_folder, custom_named_run_list = nil)
+  named_run_list = custom_named_run_list.nil? ? '' : "-n #{custom_named_run_list}"
+  cmd = "chef-client --minimal-ohai -c custom_client.rb -z #{named_run_list}"
+
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
   # Magic here. With 'Bundler.with_clean_env' it found the gems!!! http://bundler.io/v1.3/man/bundle-exec.1.html
