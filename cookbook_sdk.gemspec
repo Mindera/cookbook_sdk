@@ -6,7 +6,7 @@ require 'English'
 
 Gem::Specification.new do |spec|
   spec.name          = 'cookbook_sdk'
-  spec.version       = CookbookSdk::VERSION
+  spec.version       = CookbookSDK::VERSION
   spec.authors       = ['Mindera']
   spec.email         = ['social@mindera.com']
   spec.summary       = 'cookbook sdk'

@@ -1,4 +1,4 @@
 # Define gem version
-module CookbookSdk
+module CookbookSDK
   VERSION = '1.0.0'
 end
