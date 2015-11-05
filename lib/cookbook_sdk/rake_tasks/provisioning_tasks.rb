@@ -8,24 +8,26 @@ module CookbookSDK
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
 
     desc 'Prepare chef-zero environment, and run it.'
-    task all: ['prepare', 'run']
+    task all: ['chef:prepare', 'chef:run', 'chef:clean']
 
-    desc 'Prepare chef-zero environment to run.'
-    task :prepare do
-      clean(TARGET_FOLDER)
-      chefdk_update
-      chefdk_export(TARGET_FOLDER)
-      create_custom_client_rb(TARGET_FOLDER)
-    end
+    namespace :chef do
+      desc 'Prepare chef-zero environment to run.'
+      task :prepare do
+        clean(TARGET_FOLDER)
+        chefdk_update
+        chefdk_export(TARGET_FOLDER)
+        create_custom_client_rb(TARGET_FOLDER)
+      end
 
-    desc 'Run chef-zero in a pre prepared environment.'
-    task :run do
-      run_chef_zero(TARGET_FOLDER, CUSTOM_NAMED_LIST)
-    end
+      desc 'Run chef-zero in a pre prepared environment.'
+      task :run do
+        run_chef_zero(TARGET_FOLDER, CUSTOM_NAMED_LIST)
+      end
 
-    desc 'Clean generated folder'
-    task :clean do
-      clean(TARGET_FOLDER)
+      desc 'Clean generated folder'
+      task :clean do
+        clean(TARGET_FOLDER)
+      end
     end
   end
 end
