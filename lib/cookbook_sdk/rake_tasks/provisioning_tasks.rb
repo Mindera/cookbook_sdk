@@ -1,5 +1,5 @@
 
-module CookbookSdk
+module CookbookSDK
   # Provisioning Tasks
   module Raketasks
     extend Rake::DSL
