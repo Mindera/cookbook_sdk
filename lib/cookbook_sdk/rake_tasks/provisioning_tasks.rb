@@ -6,6 +6,7 @@ module CookbookSDK
 
     TARGET_FOLDER = '.target'
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
+    DEBUG = ENV['DEBUG']
 
     desc 'Prepare chef-zero environment, and run it.'
     task all: ['chef:prepare', 'chef:run', 'chef:clean']
@@ -21,7 +22,7 @@ module CookbookSDK
 
       desc 'Run chef-zero in a pre prepared environment.'
       task :run do
-        run_chef_zero(TARGET_FOLDER, CUSTOM_NAMED_LIST)
+        run_chef_zero(TARGET_FOLDER, CUSTOM_NAMED_LIST, DEBUG)
       end
 
       desc 'Clean generated folder'
@@ -66,9 +67,10 @@ cache_path '#{Dir.pwd}/#{target_folder}/.chef'
 end
 # rubocop:enable Metrics/MethodLength
 
-def run_chef_zero(target_folder, custom_named_run_list = nil)
+def run_chef_zero(target_folder, custom_named_run_list = nil, debug = false)
   named_run_list = custom_named_run_list.nil? ? '' : "-n #{custom_named_run_list}"
-  cmd = "chef-client --minimal-ohai -c custom_client.rb -z #{named_run_list}"
+  debug = !debug ? '' : '-l debug'
+  cmd = "chef-client --minimal-ohai -c custom_client.rb -z #{named_run_list} #{debug}"
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
