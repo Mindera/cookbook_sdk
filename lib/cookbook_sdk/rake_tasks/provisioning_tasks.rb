@@ -1,3 +1,5 @@
+require 'json'
+require 'fileutils'
 
 module CookbookSDK
   # Provisioning Tasks
@@ -5,6 +7,7 @@ module CookbookSDK
     extend Rake::DSL
 
     TARGET_FOLDER = '.target'
+    SDK_CONFIGURATION = 'cookbook_sdk.json'
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
     DEBUG = ENV['DEBUG']
 
@@ -17,7 +20,7 @@ module CookbookSDK
         clean(TARGET_FOLDER)
         chefdk_update
         chefdk_export(TARGET_FOLDER)
-        create_custom_client_rb(TARGET_FOLDER)
+        create_custom_client_rb(TARGET_FOLDER, SDK_CONFIGURATION)
       end
 
       desc 'Run chef-zero in a pre prepared environment.'
@@ -45,32 +48,76 @@ def chefdk_export(target_folder)
   run_command(cmd, true)
 end
 
-# rubocop:disable Metrics/MethodLength
-def create_custom_client_rb(target_folder)
+def read_configuration(configuration_file)
+  data_hash = nil
+
+  begin
+    file = File.read(configuration_file)
+    data_hash = JSON.parse(file, symbolize_names: true)
+  rescue Errno::ENOENT, Errno::EACCES, JSON::ParserError => e
+    puts "Problem reading #{configuration_file} - #{e}"
+  end
+
+  data_hash
+end
+
+def prepare_handlers(handlers)
+  config_rb = ''
+
+  handlers[:enabled].each do |enabled_handler|
+    handler_config = handlers[:config][enabled_handler.to_sym]
+    config_rb += %(
+
+# #{enabled_handler} handler configuration
+require 'cookbook_sdk/handlers/#{enabled_handler}'
+#{enabled_handler}_handler_options = #{handler_config}
+#{enabled_handler}_handler = Chef::Handler::Slack.new(#{enabled_handler}_handler_options)
+start_handlers << #{enabled_handler}_handler
+report_handlers << #{enabled_handler}_handler
+exception_handlers << #{enabled_handler}_handler
+
+)
+  end
+  config_rb
+end
+
+def cache_path_config(target_folder)
+  %(
+# To enable chef-client without sudo.
+# https://docs.chef.io/ctl_chef_client.html#run-as-non-root-user
+cache_path "#{Dir.pwd}/#{target_folder}/.chef"
+)
+end
+
+def create_custom_client_rb(target_folder, configuration_file)
   banner("Creating custom 'client.rb' in #{target_folder} ...")
   original_client_rb = File.join(Dir.pwd, target_folder, 'client.rb')
   custom_client_rb = File.join(Dir.pwd, target_folder, 'custom_client.rb')
 
-  File.open(original_client_rb, 'rb') do |input|
-    File.open(custom_client_rb, 'wb') do |output|
-      while (buff = input.read(4096))
-        output.write(buff)
+  config = read_configuration(configuration_file)
+
+  begin
+    FileUtils.copy_file(original_client_rb, custom_client_rb)
+    File.open(custom_client_rb, 'a') do |output|
+      output.write(cache_path_config(target_folder))
+
+      if config.nil?
+        puts 'No configuration file found: custom_client.rb will not have any user custom configuration.'
+      else
+        output.write(prepare_handlers(config[:handlers]))
       end
-      output.write("
-# To enable chef-solo without sudo.
-# https://docs.chef.io/ctl_chef_client.html#run-as-non-root-user
-cache_path '#{Dir.pwd}/#{target_folder}/.chef'
-")
     end
+  rescue Errno::EACCES => e
+    puts "Problem creating #{custom_client_rb} - #{e}"
   end
+
   puts "Writed a custom client.rb to '#{custom_client_rb}"
 end
-# rubocop:enable Metrics/MethodLength
 
 def run_chef_zero(target_folder, custom_named_run_list = nil, debug = false)
   named_run_list = custom_named_run_list.nil? ? '' : "-n #{custom_named_run_list}"
   debug = !debug ? '' : '-l debug'
-  cmd = "chef-client --minimal-ohai -c custom_client.rb -z #{named_run_list} #{debug}"
+  cmd = "chef exec chef-client --minimal-ohai -c custom_client.rb -z #{named_run_list} #{debug}"
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
