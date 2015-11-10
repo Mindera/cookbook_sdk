@@ -4,3 +4,13 @@ AllCops:
 
 Metrics/LineLength:
   Max: 120
+
+Metrics/MethodLength:
+  CountComments: false
+  Max: 20
+
+Metrics/AbcSize:
+  Max: 30
+
+Metrics/PerceivedComplexity:
+  Max: 15
