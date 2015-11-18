@@ -117,7 +117,7 @@ end
 def run_chef_zero(target_folder, custom_named_run_list = nil, debug = false)
   named_run_list = custom_named_run_list.nil? ? '' : "-n #{custom_named_run_list}"
   debug = !debug ? '' : '-l debug'
-  cmd = "chef exec chef-client --minimal-ohai -c custom_client.rb -z #{named_run_list} #{debug}"
+  cmd = "chef exec chef-client -c custom_client.rb -z #{named_run_list} #{debug}"
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
