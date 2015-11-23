@@ -6,7 +6,9 @@ module CookbookSDK
   module Raketasks
     extend Rake::DSL
 
-    TARGET_FOLDER = '.target'
+    BASE_DIR = Dir.pwd
+    BASE_DIR += '/provision' if File.directory?('provision')
+    TARGET_FOLDER = File.join(BASE_DIR, '.target')
     SDK_CONFIGURATION = 'cookbook_sdk.json'
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
     DEBUG = ENV['DEBUG']
@@ -17,9 +19,11 @@ module CookbookSDK
     namespace :chef do
       desc 'Prepare chef-zero environment to run.'
       task :prepare do
+
         clean(TARGET_FOLDER)
-        chefdk_update
-        chefdk_export(TARGET_FOLDER)
+        chefdk_update(BASE_DIR)
+        chefdk_export(BASE_DIR, TARGET_FOLDER)
+        copy_data_bags(BASE_DIR, TARGET_FOLDER)
         create_custom_client_rb(TARGET_FOLDER, SDK_CONFIGURATION)
       end
 
@@ -36,16 +40,20 @@ module CookbookSDK
   end
 end
 
-def chefdk_update
+def chefdk_update(base_dir)
   cmd = 'chef update'
-  banner("Running '#{cmd}' ...")
-  run_command(cmd, true)
+  banner("Running '#{cmd}' in #{base_dir}...")
+  Dir.chdir base_dir do
+    run_command(cmd, true)
+  end
 end
 
-def chefdk_export(target_folder)
+def chefdk_export(base_dir, target_folder)
   cmd = "chef export #{target_folder} --force"
-  banner("Running '#{cmd}' ...")
-  run_command(cmd, true)
+  banner("Running '#{cmd}' in #{base_dir}...")
+  Dir.chdir base_dir do
+    run_command(cmd, true)
+  end
 end
 
 def read_configuration(configuration_file)
@@ -85,14 +93,14 @@ def cache_path_config(target_folder)
   %(
 # To enable chef-client without sudo.
 # https://docs.chef.io/ctl_chef_client.html#run-as-non-root-user
-cache_path "#{Dir.pwd}/#{target_folder}/.chef"
+cache_path "#{target_folder}/.chef"
 )
 end
 
 def create_custom_client_rb(target_folder, configuration_file)
   banner("Creating custom 'client.rb' in #{target_folder} ...")
-  original_client_rb = File.join(Dir.pwd, target_folder, 'client.rb')
-  custom_client_rb = File.join(Dir.pwd, target_folder, 'custom_client.rb')
+  original_client_rb = File.join(target_folder, 'client.rb')
+  custom_client_rb = File.join(target_folder, 'custom_client.rb')
 
   config = read_configuration(configuration_file)
 
@@ -112,6 +120,14 @@ def create_custom_client_rb(target_folder, configuration_file)
   end
 
   puts "Writed a custom client.rb to '#{custom_client_rb}"
+end
+
+def copy_data_bags(base_dir, target_folder)
+  data_bags_directory = File.join(base_dir, 'data_bags')
+  return unless File.directory?(data_bags_directory)
+
+  banner("Copying data_bags folder from #{data_bags_directory} to #{target_folder}...")
+  FileUtils.cp_r(data_bags_directory, target_folder)
 end
 
 def run_chef_zero(target_folder, custom_named_run_list = nil, debug = false)
