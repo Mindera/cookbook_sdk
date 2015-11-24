@@ -6,8 +6,8 @@ module CookbookSDK
   module Raketasks
     extend Rake::DSL
 
-    BASE_DIR = Dir.pwd
-    BASE_DIR += '/provision' if File.directory?('provision')
+    base_dir = Dir.pwd
+    base_dir = '/provision' if File.directory?('provision')
     TARGET_FOLDER = File.join(BASE_DIR, '.target')
     SDK_CONFIGURATION = 'cookbook_sdk.json'
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
@@ -21,9 +21,9 @@ module CookbookSDK
       task :prepare do
 
         clean(TARGET_FOLDER)
-        chefdk_update(BASE_DIR)
-        chefdk_export(BASE_DIR, TARGET_FOLDER)
-        copy_data_bags(BASE_DIR, TARGET_FOLDER)
+        chefdk_update(base_dir)
+        chefdk_export(base_dir, TARGET_FOLDER)
+        copy_data_bags(base_dir, TARGET_FOLDER)
         create_custom_client_rb(TARGET_FOLDER, SDK_CONFIGURATION)
       end
 
