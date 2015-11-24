@@ -19,7 +19,6 @@ module CookbookSDK
     namespace :chef do
       desc 'Prepare chef-zero environment to run.'
       task :prepare do
-
         clean(TARGET_FOLDER)
         chefdk_update(base_dir)
         chefdk_export(base_dir, TARGET_FOLDER)
