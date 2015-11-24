@@ -136,11 +136,8 @@ def run_chef_zero(target_folder, custom_named_run_list = nil, debug = false)
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
-  # Magic here. With 'Bundler.with_clean_env' it found the gems!!! http://bundler.io/v1.3/man/bundle-exec.1.html
-  Bundler.with_clean_env do
-    Dir.chdir target_folder do
-      run_command(cmd, true)
-    end
+  Dir.chdir target_folder do
+    run_command(cmd, true)
   end
 end
 
