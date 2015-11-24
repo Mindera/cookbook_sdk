@@ -7,8 +7,8 @@ module CookbookSDK
     extend Rake::DSL
 
     base_dir = Dir.pwd
-    base_dir = '/provision' if File.directory?('provision')
-    TARGET_FOLDER = File.join(BASE_DIR, '.target')
+    base_dir += '/provision' if File.directory?('provision')
+    TARGET_FOLDER = File.join(base_dir, '.target')
     SDK_CONFIGURATION = 'cookbook_sdk.json'
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
     DEBUG = ENV['DEBUG']
@@ -148,5 +148,9 @@ end
 def clean(target_folder)
   cmd = "rm -rf #{target_folder}/cookbooks"
   banner("Cleanning up the cookbooks cache folder with '#{cmd}' ...")
+  run_command(cmd, true)
+
+  cmd = "rm -rf #{target_folder}/data_bags"
+  banner("Cleanning up the data_bags with '#{cmd}' ...")
   run_command(cmd, true)
 end
