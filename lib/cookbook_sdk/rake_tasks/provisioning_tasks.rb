@@ -145,8 +145,4 @@ def clean(target_folder)
   cmd = "rm -rf #{target_folder}/cookbooks"
   banner("Cleanning up the cookbooks cache folder with '#{cmd}' ...")
   run_command(cmd, true)
-
-  cmd = "rm -rf #{target_folder}/data_bags"
-  banner("Cleanning up the data_bags with '#{cmd}' ...")
-  run_command(cmd, true)
 end
