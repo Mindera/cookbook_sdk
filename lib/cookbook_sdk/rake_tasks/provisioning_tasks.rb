@@ -11,7 +11,9 @@ module CookbookSDK
     TARGET_FOLDER = File.join(base_dir, '.target')
     SDK_CONFIGURATION = 'cookbook_sdk.json'
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
+    RUN_LIST = ENV['RUN_LIST']
     DEBUG = ENV['DEBUG']
+    BERKS = ENV['BERKS'] || false
 
     desc 'Prepare chef-zero environment, and run it.'
     task all: ['chef:prepare', 'chef:run', 'chef:clean']
@@ -20,15 +22,20 @@ module CookbookSDK
       desc 'Prepare chef-zero environment to run.'
       task :prepare do
         clean(TARGET_FOLDER)
-        chefdk_update(base_dir)
-        chefdk_export(base_dir, TARGET_FOLDER)
+        if BERKS
+          berks_update(base_dir)
+          berks_vendor(base_dir, TARGET_FOLDER)
+        else
+          chefdk_update(base_dir)
+          chefdk_export(base_dir, TARGET_FOLDER)
+        end
         copy_data_bags(base_dir, TARGET_FOLDER)
-        create_custom_client_rb(TARGET_FOLDER, SDK_CONFIGURATION)
+        create_custom_client_rb(TARGET_FOLDER, SDK_CONFIGURATION, !BERKS)
       end
 
       desc 'Run chef-zero in a pre prepared environment.'
       task :run do
-        run_chef_zero(TARGET_FOLDER, CUSTOM_NAMED_LIST, DEBUG)
+        run_chef_zero(TARGET_FOLDER, CUSTOM_NAMED_LIST, RUN_LIST, DEBUG)
       end
 
       desc 'Clean generated folder'
@@ -39,33 +46,40 @@ module CookbookSDK
   end
 end
 
-def chefdk_update(base_dir)
-  cmd = 'chef update'
+
+def _run_command(cmd, base_dir)
   banner("Running '#{cmd}' in #{base_dir}...")
   Dir.chdir base_dir do
     run_command(cmd, true)
   end
+end
+
+def berks_update(base_dir)
+  _run_command('berks install', base_dir)
+  _run_command('berks update', base_dir)
+end
+
+def berks_vendor(base_dir, target_folder)
+  _run_command("berks vendor #{target_folder}/cookbooks", base_dir)
+end
+
+def chefdk_update(base_dir)
+  _run_command('chef update', base_dir)
 end
 
 def chefdk_export(base_dir, target_folder)
-  cmd = "chef export #{target_folder} --force"
-  banner("Running '#{cmd}' in #{base_dir}...")
-  Dir.chdir base_dir do
-    run_command(cmd, true)
-  end
+  _run_command("chef export #{target_folder} --force", base_dir)
 end
 
 def read_configuration(configuration_file)
-  data_hash = nil
 
-  begin
-    file = File.read(configuration_file)
-    data_hash = JSON.parse(file, symbolize_names: true)
-  rescue Errno::ENOENT, Errno::EACCES, JSON::ParserError => e
-    puts "Problem reading #{configuration_file} - #{e}"
-  end
+  return nil unless File.exist?(configuration_file)
 
+  file = File.read(configuration_file)
+  data_hash = JSON.parse(file, symbolize_names: true)
   data_hash
+rescue Errno::ENOENT, Errno::EACCES, JSON::ParserError => e
+  puts "Problem reading #{configuration_file} - #{e}"
 end
 
 def prepare_handlers(handlers)
@@ -96,7 +110,7 @@ cache_path "#{target_folder}/.chef"
 )
 end
 
-def create_custom_client_rb(target_folder, configuration_file)
+def create_custom_client_rb(target_folder, configuration_file, copy_original)
   banner("Creating custom 'client.rb' in #{target_folder} ...")
   original_client_rb = File.join(target_folder, 'client.rb')
   custom_client_rb = File.join(target_folder, 'custom_client.rb')
@@ -104,7 +118,7 @@ def create_custom_client_rb(target_folder, configuration_file)
   config = read_configuration(configuration_file)
 
   begin
-    FileUtils.copy_file(original_client_rb, custom_client_rb)
+    FileUtils.copy_file(original_client_rb, custom_client_rb) if copy_original
     File.open(custom_client_rb, 'a') do |output|
       output.write(cache_path_config(target_folder))
 
@@ -129,10 +143,11 @@ def copy_data_bags(base_dir, target_folder)
   FileUtils.cp_r(data_bags_directory, target_folder)
 end
 
-def run_chef_zero(target_folder, custom_named_run_list = nil, debug = false)
+def run_chef_zero(target_folder, custom_named_run_list = nil, run_list = nil, debug = false)
   named_run_list = custom_named_run_list.nil? ? '' : "-n #{custom_named_run_list}"
+  run_list = run_list.nil? ? '' : "-o #{run_list}"
   debug = !debug ? '' : '-l debug'
-  cmd = "chef exec chef-client -c custom_client.rb -z #{named_run_list} #{debug}"
+  cmd = "chef exec chef-client -c custom_client.rb -z #{named_run_list} #{run_list} #{debug}"
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
