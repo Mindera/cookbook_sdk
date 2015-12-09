@@ -46,7 +46,6 @@ module CookbookSDK
   end
 end
 
-
 def _run_command(cmd, base_dir)
   banner("Running '#{cmd}' in #{base_dir}...")
   Dir.chdir base_dir do
@@ -72,7 +71,6 @@ def chefdk_export(base_dir, target_folder)
 end
 
 def read_configuration(configuration_file)
-
   return nil unless File.exist?(configuration_file)
 
   file = File.read(configuration_file)
