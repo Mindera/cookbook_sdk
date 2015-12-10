@@ -29,6 +29,7 @@ module CookbookSDK
           chefdk_update(base_dir)
           chefdk_export(base_dir, TARGET_FOLDER)
         end
+        copy_attributes_file(base_dir, TARGET_FOLDER)
         copy_data_bags(base_dir, TARGET_FOLDER)
         create_custom_client_rb(TARGET_FOLDER, SDK_CONFIGURATION, !BERKS)
       end
@@ -141,11 +142,23 @@ def copy_data_bags(base_dir, target_folder)
   FileUtils.cp_r(data_bags_directory, target_folder)
 end
 
+def copy_attributes_file(base_dir, target_folder)
+  attributes_file = File.join(base_dir, 'attributes.json')
+  return unless File.exist?(attributes_file)
+
+  banner("Copying attributes file from #{attributes_file} to #{target_folder}...")
+  FileUtils.cp_r(attributes_file, target_folder)
+end
+
 def run_chef_zero(target_folder, custom_named_run_list = nil, run_list = nil, debug = false)
   named_run_list = custom_named_run_list.nil? ? '' : "-n #{custom_named_run_list}"
   run_list = run_list.nil? ? '' : "-o #{run_list}"
   debug = !debug ? '' : '-l debug'
-  cmd = "chef exec chef-client -c custom_client.rb -z #{named_run_list} #{run_list} #{debug}"
+
+  attributes_file = File.join(target_folder, 'attributes.json')
+  attributes = File.exist?(attributes_file) ? '-j attributes.json' : ''
+
+  cmd = "chef exec chef-client -c custom_client.rb -z #{named_run_list} #{run_list} #{debug} #{attributes}"
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
