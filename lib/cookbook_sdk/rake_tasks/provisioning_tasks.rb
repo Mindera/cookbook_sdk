@@ -72,9 +72,15 @@ def chefdk_export(base_dir, target_folder)
 end
 
 def read_configuration(configuration_file)
-  return nil unless File.exist?(configuration_file)
+  file = nil
 
-  file = File.read(configuration_file)
+  if File.exist?(configuration_file)
+    file = File.read(configuration_file)
+  elsif File.exist?("../#{configuration_file}")
+    file = File.read(configuration_file)
+  end
+  return nil if file.nil?
+
   data_hash = JSON.parse(file, symbolize_names: true)
   data_hash
 rescue Errno::ENOENT, Errno::EACCES, JSON::ParserError => e
@@ -158,7 +164,12 @@ def run_chef_zero(target_folder, custom_named_run_list = nil, run_list = nil, de
   attributes_file = File.join(target_folder, 'attributes.json')
   attributes = File.exist?(attributes_file) ? '-j attributes.json' : ''
 
-  cmd = "chef exec chef-client -c custom_client.rb -z #{named_run_list} #{run_list} #{debug} #{attributes}"
+  timestamp = Time.now.to_i
+  cache_pid_file = "#{target_folder}/.chef/cache/chef-client-running_#{timestamp}.pid"
+  lockfile = "--lockfile=#{cache_pid_file}"
+
+  cmd = "chef exec chef-client -c custom_client.rb -z "
+  cmd += "#{named_run_list} #{run_list} #{debug} #{attributes} #{cache_pid_file}"
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
