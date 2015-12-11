@@ -169,7 +169,7 @@ def run_chef_zero(target_folder, custom_named_run_list = nil, run_list = nil, de
   lockfile = "--lockfile=#{cache_pid_file}"
 
   cmd = "chef exec chef-client -c custom_client.rb -z "
-  cmd += "#{named_run_list} #{run_list} #{debug} #{attributes} #{cache_pid_file}"
+  cmd += "#{named_run_list} #{run_list} #{debug} #{attributes} #{lockfile}"
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
 
