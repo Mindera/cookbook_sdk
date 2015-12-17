@@ -17,4 +17,23 @@ namespace :jenkins do
       f.write(attributes.to_json)
     end
   end
+
+  desc 'Read image id and create attribute json file for cluster deployment'
+  task :image_id do
+    begin
+      image_output_file = File.read('_aws_image_output.json')
+      image_output = JSON.parse(image_output_file)
+    rescue StandardError => err
+      raise err
+    end
+
+    attributes_file = File.join('provision', 'attributes.json')
+    attributes = {
+      'image_id' => image_output['ami_id']
+    }
+
+    File.open(attributes_file, 'w') do |f|
+      f.write(attributes.to_json)
+    end
+  end
 end
