@@ -21,7 +21,7 @@ namespace :jenkins do
   desc 'Read image id and create attribute json file for cluster deployment'
   task :image_id do
     begin
-      image_output_file = File.read(File.join('.', '_aws_image_output.json'))
+      image_output_file = File.read(File.join('.', '_aws_image.output.json'))
       image_output = JSON.parse(image_output_file)
     rescue StandardError => err
       raise err
