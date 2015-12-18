@@ -18,8 +18,8 @@ namespace :jenkins do
     end
   end
 
-  desc 'Read image id and create attribute json file for cluster deployment'
-  task :image_id do
+  desc 'Create attribute json file for cluster deployment'
+  task :attributes do
     begin
       image_output_file = File.read(File.join('.', '_aws_image.output.json'))
       image_output = JSON.parse(image_output_file)
@@ -27,9 +27,13 @@ namespace :jenkins do
       raise err
     end
 
+    environment = ENV['ENVIRONMENT']
+    environment = 'test' if environment.nil? || environment.empty?
+
     attributes_file = File.join('provision', 'attributes.json')
     attributes = {
-      'image_id' => image_output['ami_id']
+      'image_id' => image_output['ami_id'],
+      'environment' => environment
     }
 
     File.open(attributes_file, 'w') do |f|
