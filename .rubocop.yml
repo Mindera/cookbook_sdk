@@ -14,3 +14,11 @@ Metrics/AbcSize:
 
 Metrics/PerceivedComplexity:
   Max: 15
+
+HashSyntax:
+  EnforcedStyle: hash_rockets
+  Exclude:
+    - Rakefile
+    - Berksfile
+    - Gemfile
+    - Policyfile.rb

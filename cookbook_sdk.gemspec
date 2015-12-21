@@ -21,5 +21,12 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'bundler', '~> 1.9'
   spec.add_dependency 'rake', '~> 10.4'
-  spec.add_dependency 'highline', '~> 1.6', '>= 1.6.9'
+  spec.add_dependency 'highline', '~> 1.7.8'
+
+  spec.add_development_dependency 'chef'
+  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'minitest'
+  spec.add_development_dependency 'mocha'
+  spec.add_development_dependency 'simplecov'
+  spec.add_development_dependency 'coveralls'
 end

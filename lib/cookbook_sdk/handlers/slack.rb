@@ -1,3 +1,4 @@
+require 'chef/exceptions'
 require 'chef/handler'
 require 'net/http'
 require 'uri'
@@ -8,18 +9,19 @@ class Chef
     # Slack Handler goal is send messages to a Slack channel with Chef run status.
     # It can be used as a start, failure or success handler.
     class Slack < Chef::Handler
+      attr_reader :token, :channel, :username, :on_start, :on_success, :on_failure
+
       def initialize(options = {})
-        @token = options[:token]
-        @channel = options[:channel] || '#chef'
-        @username = options[:username] || 'Chef'
-        @on_start = options[:on_start].nil? ? true : options[:on_start]
-        @on_success = options[:on_success].nil? ? true : options[:on_success]
-        @on_failure = options[:on_failure].nil? ? true : options[:on_failure]
+        @token = options.fetch(:token) { fail Exceptions::ConfigurationError, "Slack 'token' should be provided!" }
+        @channel = options.fetch(:channel, '#chef')
+        @username = options.fetch(:username, 'Chef')
+        @on_start = options.fetch(:on_start, true)
+        @on_success = options.fetch(:on_success, true)
+        @on_failure = options.fetch(:on_failure, true)
       end
 
       def report
-        options = {}
-        options[:pretext] = "Run at #{run_status.node.name}"
+        options = { :pretext => "Run at #{run_status.node.name}" }
 
         if !run_status.is_a?(Chef::RunStatus) || elapsed_time.nil?
           report_start(options)
@@ -29,6 +31,8 @@ class Chef
           report_failure(options)
         end
       end
+
+      private
 
       def report_start(options)
         return exit_without_sending('start') unless @on_start
@@ -51,34 +55,32 @@ class Chef
       def report_failure(options)
         return exit_without_sending('failure') unless @on_failure
 
-        options[:title] = 'Chef FAILED!'
+        options[:title] = 'Chef run FAILED!'
         options[:color] = 'danger'
         options[:body] = "Running #{node.run_list} failed in #{run_status.elapsed_time} seconds."
-        options[:fallback] = "Chef FAILED! #{run_status.node.name} failed to run #{node.run_list}." \
+        options[:fallback] = "Chef FAILED! #{run_status.node.name} failed to run #{node.run_list}" \
                                " in #{run_status.elapsed_time.to_i} seconds."
         send_attachment(options)
 
         return if run_status.exception.nil?
-
-        text = '```' + run_status.formatted_exception.encode(
+        options[:text] = '```' + run_status.formatted_exception.encode(
           'UTF-8',
-          invalid: 'replace', undef: 'replace', replace: '?'
+          :invalid => :replace, :undef => :replace, :replace => '?'
         ) + '```'
-        options[:text] = text
         send_text(options)
       end
 
       def send_attachment(options)
         fail 'No message defined to be send to slack' if options[:body].nil?
         params = {
-          color: options[:color],
-          attachments: [{
-            pretext:  options[:pretext],
-            title: options[:title],
-            title_link: options[:title_link],
-            color: options[:color],
-            text: options[:body],
-            fallback: options[:fallback]
+          :color => options[:color],
+          :attachments => [{
+            :pretext =>  options[:pretext],
+            :title => options[:title],
+            :title_link => options[:title_link],
+            :color => options[:color],
+            :text => options[:body],
+            :fallback => options[:fallback]
           }]
         }
         send_slack_message(params)
@@ -91,13 +93,13 @@ class Chef
       def send_text(options)
         fail 'No message defined to be send to slack' if options[:text].nil?
         params = {
-          text: options[:text]
+          :text => options[:text]
         }
         send_slack_message(params)
       end
 
       def send_slack_message(specif_params)
-        params = { username: @username, channel: @channel, token: @token }.merge(specif_params)
+        params = { :username => @username, :channel => @channel, :token => @token }.merge(specif_params)
 
         uri = URI("https://hooks.slack.com/services/#{@token}")
         http = Net::HTTP.new(uri.host, uri.port)
@@ -105,7 +107,7 @@ class Chef
 
         begin
           req = Net::HTTP::Post.new("#{uri.path}?#{uri.query}")
-          req.set_form_data(payload: params.to_json)
+          req.set_form_data(:payload => params.to_json)
           res = http.request(req)
           if res.code != '200'
             Chef::Log.error("We got an error while posting a message to Slack: #{res.code} - #{res.msg}")

@@ -15,4 +15,4 @@ script:
   - /opt/chefdk/embedded/bin/rubocop --version
   - /opt/chefdk/embedded/bin/foodcritic --version
   - chef exec bundle exec rake install
-  - chef exec rake test:rubocop
+  - chef exec rake test:ci

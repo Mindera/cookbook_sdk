@@ -5,7 +5,7 @@ module CookbookSdk
     extend Rake::DSL
 
     desc 'Run all fast tests.'
-    task test: ['test:foodcritic', 'test:rubocop', 'test:rspec']
+    task :test => ['test:foodcritic', 'test:rubocop', 'test:rspec']
 
     namespace :test do
       desc 'Runs Foodcritic linting'
@@ -24,7 +24,7 @@ module CookbookSdk
       end
 
       ### Continous Integration
-      desc 'Runs all tests to be run in a CI environment'
+      desc 'Runs all tests when run in a CI environment'
       task :ci do
         error = false
         error = foodcritic(false) || error
@@ -44,8 +44,8 @@ def foodcritic(exit_on_error = true)
 end
 
 def rspec(exit_on_error = true)
-  files = FileList[File.join(Dir.pwd, 'spec', 'unit', '**/*_spec.rb')]
-  cmd = "chef exec rspec #{files}"
+  files = FileList[File.join(Dir.pwd, 'test', 'unit', '**/test_*.rb')]
+  cmd = "chef exec rspec #{files} --format doc"
   banner("Running '#{cmd}' ...")
   run_command(cmd, exit_on_error)
 end
