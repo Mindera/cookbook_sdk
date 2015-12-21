@@ -16,7 +16,7 @@ module CookbookSDK
     BERKS = ENV['BERKS'] || false
 
     desc 'Prepare chef-zero environment, and run it.'
-    task all: ['chef:prepare', 'chef:run', 'chef:clean']
+    task :all => ['chef:prepare', 'chef:run', 'chef:clean']
 
     namespace :chef do
       desc 'Prepare chef-zero environment to run.'
@@ -81,7 +81,7 @@ def read_configuration(configuration_file)
   end
   return nil if file.nil?
 
-  data_hash = JSON.parse(file, symbolize_names: true)
+  data_hash = JSON.parse(file, :symbolize_names => true)
   data_hash
 rescue Errno::ENOENT, Errno::EACCES, JSON::ParserError => e
   puts "Problem reading #{configuration_file} - #{e}"
@@ -124,7 +124,9 @@ def create_custom_client_rb(target_folder, configuration_file, copy_original)
 
   begin
     FileUtils.copy_file(original_client_rb, custom_client_rb) if copy_original
-    File.open(custom_client_rb, 'a') do |output|
+    open_mode = copy_original ? 'a' : 'w'
+
+    File.open(custom_client_rb, open_mode) do |output|
       output.write(cache_path_config(target_folder))
 
       if config.nil?
