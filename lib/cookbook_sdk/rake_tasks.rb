@@ -3,6 +3,7 @@ require 'cookbook_sdk/rake_tasks/test_tasks'
 require 'cookbook_sdk/rake_tasks/helper_tasks'
 require 'cookbook_sdk/rake_tasks/provisioning_tasks'
 require 'cookbook_sdk/rake_tasks/jenkins_tasks'
+require 'cookbook_sdk/rake_tasks/go_tasks'
 require 'English'
 
 # Runs a shell command.
