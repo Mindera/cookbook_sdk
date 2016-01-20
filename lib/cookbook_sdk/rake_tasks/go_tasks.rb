@@ -4,7 +4,7 @@ require 'json'
 namespace :go do
   desc 'Generate attribute json file for image creation'
   task :image_attr_json do
-    rpm_version_file = File.join(File.dirname(__FILE__), '../rpm_version')
+    rpm_version_file = File.join('../rpm_version')
     attributes_file = File.join('provision', 'attributes.json')
 
     version = nil
