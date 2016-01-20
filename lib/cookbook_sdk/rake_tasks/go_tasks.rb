@@ -2,7 +2,6 @@ require 'cookbook_sdk/rake_tasks'
 require 'json'
 
 namespace :go do
-
   desc 'Generate attribute json file for image creation'
   task :image_attr_json do
     rpm_version_file = File.join(File.dirname(__FILE__), '../rpm_version')
@@ -10,12 +9,12 @@ namespace :go do
 
     version = nil
     File.open(rpm_version_file, 'r') do |output|
-    version = output.read.strip
+      version = output.read.strip
     end
 
     fail "'rpm_version' file should have a valid rpm version" if version.nil? || version.empty?
 
-    attributes = { 'pipeline' { 'app_version' => "#{version}" } }
+    attributes = { 'pipeline' => { 'app_version' => "#{version}" } }
 
     File.open(attributes_file, 'w') do |f|
       f.write(attributes.to_json)
