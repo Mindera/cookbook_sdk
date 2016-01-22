@@ -24,7 +24,7 @@ namespace :go do
   desc 'Create attribute json file for cluster deployment'
   task :cluster_attr_json do
     begin
-      image_output_file = File.read(File.join('.', '_aws_image.output.json'))
+      image_output_file = File.read('../_aws_image.output.json')
       image_output = JSON.parse(image_output_file)
     rescue StandardError => err
       raise err
@@ -40,8 +40,9 @@ namespace :go do
     attributes_file = File.join('provision', 'attributes.json')
     attributes = {
       'pipeline' => {
-        'image_id' => image_output['ami_id'],
-        'environment' => environment
+        'ami_id' => image_output['ami_id'],
+        'environment' => environment,
+        'action' => action
       }
     }
 
