@@ -164,17 +164,24 @@ def run_chef_zero(target_folder, custom_named_run_list = nil, run_list = nil, de
   debug = !debug ? '' : '-l debug'
   log_format = '--force-formatter'
 
-  attributes_file = File.join(target_folder, 'attributes.json')
-  attributes = File.exist?(attributes_file) ? '-j attributes.json' : ''
+  attributes_file_path = File.join(target_folder, 'attributes.json')
+  attributes_flag = File.exist?(attributes_file_path) ? '-j attributes.json' : ''
 
   timestamp = Time.now.to_i
   cache_pid_file = "#{target_folder}/.chef/cache/chef-client-running_#{timestamp}.pid"
   lockfile = "--lockfile=#{cache_pid_file}"
 
   cmd = 'chef exec chef-client -c custom_client.rb -z '
-  cmd += "#{named_run_list} #{run_list} #{debug} #{attributes} #{lockfile} #{log_format}"
+  cmd += "#{named_run_list} #{run_list} #{debug} #{attributes_flag} #{lockfile} #{log_format}"
 
   banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
+  if attributes_flag != ''
+    file = File.read(attributes_file_path)
+    data_hash = JSON.pretty_generate(JSON.parse(file))
+
+    banner("Attributes are:")
+    banner(data_hash)
+  end
 
   Dir.chdir target_folder do
     run_command(cmd, true)
