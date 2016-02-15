@@ -5,7 +5,10 @@ namespace :go do
   desc 'Generate attribute json file for image creation'
   task :image_attr_json do
     rpm_version_file = File.join('../rpm_version')
-    attributes_file = File.join('provision', 'attributes.json')
+
+    base_dir = Dir.pwd
+    base_dir += '/provision' if File.directory?('provision')
+    attributes_file = File.join(base_dir, 'attributes.json')
 
     version = nil
     File.open(rpm_version_file, 'r') do |output|
