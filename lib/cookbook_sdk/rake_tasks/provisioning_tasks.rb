@@ -9,7 +9,7 @@ module CookbookSDK
     base_dir = Dir.pwd
     base_dir += '/provision' if File.directory?('provision')
     TARGET_FOLDER = File.join(base_dir, '.target')
-    SDK_CONFIGURATION = 'cookbook_sdk.json'
+    SDK_CONFIGURATION = 'cookbook_sdk.json'.freeze
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
     RUN_LIST = ENV['RUN_LIST']
     DEBUG = ENV['DEBUG']

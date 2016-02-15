@@ -12,7 +12,7 @@ class Chef
       attr_reader :token, :channel, :username, :on_start, :on_success, :on_failure
 
       def initialize(options = {})
-        @token = options.fetch(:token) { fail Exceptions::ConfigurationError, "Slack 'token' should be provided!" }
+        @token = options.fetch(:token) { raise Exceptions::ConfigurationError, "Slack 'token' should be provided!" }
         @channel = options.fetch(:channel, '#chef')
         @username = options.fetch(:username, 'Chef')
         @on_start = options.fetch(:on_start, true)
@@ -71,11 +71,11 @@ class Chef
       end
 
       def send_attachment(options)
-        fail 'No message defined to be send to slack' if options[:body].nil?
+        raise 'No message defined to be send to slack' if options[:body].nil?
         params = {
           :color => options[:color],
           :attachments => [{
-            :pretext =>  options[:pretext],
+            :pretext => options[:pretext],
             :title => options[:title],
             :title_link => options[:title_link],
             :color => options[:color],
@@ -91,7 +91,7 @@ class Chef
       end
 
       def send_text(options)
-        fail 'No message defined to be send to slack' if options[:text].nil?
+        raise 'No message defined to be send to slack' if options[:text].nil?
         params = {
           :text => options[:text]
         }

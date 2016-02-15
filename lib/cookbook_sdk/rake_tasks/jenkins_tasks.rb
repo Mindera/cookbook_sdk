@@ -7,10 +7,10 @@ namespace :jenkins do
     attributes_file = File.join('provision', 'attributes.json')
     pipeline_version = ENV['PIPELINE_VERSION']
 
-    fail '$PIPELINE_VERSION cannot be null or empty' if pipeline_version.nil? || pipeline_version.empty?
+    raise '$PIPELINE_VERSION cannot be null or empty' if pipeline_version.nil? || pipeline_version.empty?
 
     attributes = {
-      'pipeline_version' => "#{pipeline_version}"
+      'pipeline_version' => pipeline_version
     }
 
     File.open(attributes_file, 'w') do |f|

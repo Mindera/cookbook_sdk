@@ -207,7 +207,7 @@ describe Chef::Handler::Slack do
             :channel => config[:channel],
             :token => config[:token],
             :color => 'danger',
-            :attachments =>  [{
+            :attachments => [{
               :pretext => 'Run at test',
               :title => 'Chef run FAILED!',
               :title_link => nil,

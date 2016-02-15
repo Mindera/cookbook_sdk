@@ -15,9 +15,9 @@ namespace :go do
       version = output.read.strip
     end
 
-    fail "'rpm_version' file should have a valid rpm version" if version.nil? || version.empty?
+    raise "'rpm_version' file should have a valid rpm version" if version.nil? || version.empty?
 
-    attributes = { 'pipeline' => { 'app_version' => "#{version}" } }
+    attributes = { 'pipeline' => { 'app_version' => version } }
 
     File.open(attributes_file, 'w') do |f|
       f.write(attributes.to_json)
@@ -38,7 +38,7 @@ namespace :go do
 
     action = ENV['ACTION'] || nil
     actions = %w(create destroy update)
-    fail "'ACTION' should be one of #{actions}" unless actions.include? action
+    raise "'ACTION' should be one of #{actions}" unless actions.include? action
 
     attributes_file = File.join('provision', 'attributes.json')
     attributes = {
