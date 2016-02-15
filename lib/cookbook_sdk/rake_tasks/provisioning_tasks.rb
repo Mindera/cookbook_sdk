@@ -174,18 +174,15 @@ def run_chef_zero(target_folder, custom_named_run_list = nil, run_list = nil, de
   cmd = 'chef exec chef-client -c custom_client.rb -z '
   cmd += "#{named_run_list} #{run_list} #{debug} #{attributes_flag} #{lockfile} #{log_format}"
 
-  banner("Running '#{cmd}' inside folder '#{target_folder}' ...")
   if attributes_flag != ''
     file = File.read(attributes_file_path)
     data_hash = JSON.pretty_generate(JSON.parse(file))
 
-    banner("Attributes are:")
+    banner('Attributes are:')
     banner(data_hash)
   end
 
-  Dir.chdir target_folder do
-    run_command(cmd, true)
-  end
+  _run_command(cmd, target_folder)
 end
 
 def clean(target_folder)
