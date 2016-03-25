@@ -37,7 +37,7 @@ namespace :go do
     environment = 'test' if environment.nil? || environment.empty?
 
     action = ENV['ACTION'] || nil
-    actions = %w(create destroy update flick_dns)
+    actions = %w(create destroy update)
     raise "'ACTION' should be one of #{actions}" unless actions.include? action
 
     attributes_file = File.join('provision', 'attributes.json')
