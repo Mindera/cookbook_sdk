@@ -13,7 +13,7 @@ module CookbookSDK
     CUSTOM_NAMED_LIST = ENV['NAMED_RUN_LIST']
     RUN_LIST = ENV['RUN_LIST']
     DEBUG = ENV['DEBUG']
-    BERKS = ENV['BERKS'] || false
+    BERKS = ENV['BERKS'] || true
 
     desc 'Prepare chef-zero environment, and run it.'
     task :all => ['chef:prepare', 'chef:run', 'chef:clean']
